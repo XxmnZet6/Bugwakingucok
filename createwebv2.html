@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deploy Razki — Fullscreen Deployment</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+/* === CSS sama dengan punyamu, tidak diubah kecuali minor fix === */
+:root{
+  --bg:#0a0a0a;--panel:#111922;--accent:#4ef26f;--muted:#7ef26f;
+  --glass:rgba(46,242,111,.05);--highlight:#1c2a1f;--border:rgba(46,242,111,.2);
+  --shadow:rgba(0,0,0,.9);--glow:rgba(46,242,111,.3)
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{
+  height:100%;width:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--accent);
+  display:flex;align-items:center;justify-content:center;overflow:hidden
+}
+#snow{position:fixed;inset:0;z-index:0;pointer-events:none;background:transparent}
+.card{width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:40px;position:relative;z-index:1}
+h1{font-size:32px;font-weight:800;letter-spacing:-1px;white-space:nowrap;display:flex;align-items:center;gap:.25rem}
+.typewriter-text{display:inline-block;min-width:1px}
+.caret{display:inline-block;width:2px;height:1.2em;background:var(--accent);transform:translateY(2px);animation:blink 1s steps(1,end) infinite}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.panel{background:var(--panel);padding:40px;border-radius:24px;border:1px solid var(--border);display:flex;flex-direction:column;align-items:center;width:90%;max-width:600px;gap:20px;box-shadow:0 20px 60px var(--shadow)}
+label{font-size:16px;font-weight:600;color:var(--muted);text-align:center}
+input[type="text"],input[type="file"]{width:100%;padding:18px;border-radius:16px;background:var(--glass);border:1px solid var(--border);color:var(--accent);font-size:16px;transition:all .3s}
+input:focus{outline:none;border-color:var(--accent);background:var(--highlight);box-shadow:0 0 12px var(--glow)}
+.muted{color:var(--muted);font-size:14px;text-align:center}
+.btn{padding:16px 28px;border-radius:16px;background:var(--panel);border:1px solid var(--border);color:var(--accent);font-size:16px;font-weight:600;cursor:pointer;transition:all .3s;width:100%;text-align:center}
+.btn:hover{background:var(--highlight);box-shadow:0 8px 20px var(--shadow)}
+.btn.primary{background:linear-gradient(180deg,var(--accent),var(--panel));font-weight:700;animation:pulse 2s infinite}
+.upload-area{position:relative;width:100%;height:220px;border:2px dashed var(--border);border-radius:16px;display:flex;align-items:center;justify-content:center;background:var(--glass);transition:border-color .3s;overflow:hidden;flex-direction:column;gap:12px}
+.upload-area:hover{border-color:var(--accent)}
+.upload-icon{display:flex;align-items:center;justify-content:center;animation:float 3s ease-in-out infinite}
+.upload-icon svg{width:100px;height:100px;stroke:var(--accent);stroke-width:2;fill:none;filter:drop-shadow(0 0 6px var(--glow))}
+.upload-text{font-size:14px;color:var(--muted)}
+input[type="file"]{position:absolute;width:100%;height:100%;opacity:0;cursor:pointer}
+.result{margin-top:20px;padding:20px;border-radius:16px;background:var(--glass);border:1px solid var(--border);width:100%;text-align:center;display:none;font-weight:500}
+.loading-overlay{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.95);backdrop-filter:blur(12px);z-index:999}
+.loader{width:450px;padding:36px;border-radius:24px;background:var(--panel);border:1px solid var(--border);box-shadow:0 25px 80px var(--shadow);display:flex;flex-direction:column;align-items:center;gap:16px}
+.progress-bar{width:100%;height:10px;background:var(--glass);border-radius:10px;overflow:hidden;margin-top:12px}
+.progress{width:0%;height:100%;background:var(--accent);transition:width .3s}.file-name{font-size:14px;color:var(--accent);margin-top:8px;text-align:center}
+@keyframes pulse{0%{box-shadow:0 0 0 0 var(--glow)}50%{box-shadow:0 0 20px 8px var(--glow)}100%{box-shadow:0 0 0 0 var(--glow)}}
+@keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-8px)}100%{transform:translateY(0)}}
+@media(max-width:768px){h1{font-size:24px}.btn{padding:14px;font-size:14px}.panel{padding:28px}}
+</style>
+</head>
+<body>
+<canvas id="snow"></canvas>
+<div class="card">
+  <h1><span class="typewriter-text" id="typeTarget"></span><span class="caret"></span></h1>
+  <div class="panel">
+    <label for="siteName">Deploy Website</label>
+    <input id="siteName" type="text" placeholder="situsunik" />
+    <div class="muted">Domain: <span id="previewDomain">tidak ada</span>.vercel.app</div>
+    <label>Pilih File</label>
+    <div class="upload-area">
+      <div class="upload-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+          <path d="M4 14.5a4.5 4.5 0 0 1 1-8.9 6 6 0 0 1 11.7-1.6 5 5 0 0 1 2.3 9.5"/>
+          <path d="M12 12v6m0-6 3 3m-3-3-3 3"/>
+        </svg>
+      </div>
+      <div class="upload-text">Klik atau seret file ke sini</div>
+      <input id="fileInput" type="file" accept=".zip,.html" />
+    </div>
+    <div class="file-name" id="fileName">Belum ada file</div>
+    <button class="btn primary" id="forgeBtn">Deploy Website</button>
+    <div class="result" id="resultBox"></div>
+  </div>
+</div>
+<div class="loading-overlay" id="loading">
+  <div class="loader">
+    <div>Mendeploy...</div>
+    <div class="progress-bar"><div class="progress" id="progress"></div></div>
+  </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js"></script>
+<script>
+// Animasi typewriter
+(function(){
+  const target=document.getElementById('typeTarget');
+  const text='Deploy Razki';let i=0,dir=1;
+  function tick(){
+    target.textContent=text.slice(0,i);
+    if(dir===1){if(i<text.length){i++;setTimeout(tick,130);}else{dir=-1;setTimeout(tick,1200);}}
+    else{if(i>0){i--;setTimeout(tick,80);}else{dir=1;setTimeout(tick,600);}}
+  } tick();
+})();
+
+// Animasi snow
+(function(){
+  const canvas=document.getElementById('snow');const ctx=canvas.getContext('2d');
+  let w=0,h=0,flakes=[],dpr=window.devicePixelRatio||1;
+  function resize(){dpr=window.devicePixelRatio||1;w=innerWidth;h=innerHeight;canvas.width=w*dpr;canvas.height=h*dpr;ctx.setTransform(1,0,0,1,0,0);ctx.scale(dpr,dpr);const max=Math.min(250,Math.max(60,Math.floor(w*h/16000)));if(flakes.length<max){while(flakes.length<max)flakes.push(makeFlake());}else if(flakes.length>max){flakes.length=max;}}
+  function rand(a,b){return Math.random()*(b-a)+a;}
+  function makeFlake(){const r=rand(1,3.2);return{x:rand(-w*0.1,w*1.1),y:rand(-h,0),r,vy:rand(0.6,1.8)*(r/2+0.7),vx:rand(-0.4,0.4),alpha:rand(0.55,0.95),swing:rand(0.8,1.6),offset:rand(0,Math.PI*2)};}
+  function update(f){f.y+=f.vy;f.x+=f.vx+Math.sin(f.y*0.01+f.offset)*(0.4*f.swing);f.alpha+=(Math.random()-0.5)*0.02;if(f.alpha<0.35)f.alpha=0.35;if(f.alpha>1)f.alpha=1;if(f.y-f.r>h)Object.assign(f,makeFlake(),{y:-f.r});if(f.x<-20)f.x=w+20;if(f.x>w+20)f.x=-20;}
+  function draw(f){ctx.beginPath();ctx.fillStyle='rgba(255,255,255,'+f.alpha+')';ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill();}
+  function loop(){ctx.clearRect(0,0,w,h);for(let i=0;i<flakes.length;i++){update(flakes[i]);draw(flakes[i]);}requestAnimationFrame(loop);}
+  addEventListener('resize',resize,{passive:true});resize();loop();
+})();
+
+// Deploy logic
+const siteNameEl=document.getElementById('siteName');
+const previewDomain=document.getElementById('previewDomain');
+const fileInput=document.getElementById('fileInput');
+const fileName=document.getElementById('fileName');
+const forgeBtn=document.getElementById('forgeBtn');
+const resultBox=document.getElementById('resultBox');
+const loading=document.getElementById('loading');
+const progress=document.getElementById('progress');
+
+const VERCEL_TOKEN=""; // token asli
+
+let deployCount=0;const deployLimit=2;
+siteNameEl.addEventListener('input',()=>{
+  const v=siteNameEl.value.toLowerCase().replace(/[^a-z0-9]/g,'');
+  siteNameEl.value=v;
+  previewDomain.textContent=v||'tidak ada';
+});
+fileInput.addEventListener('change',()=>{
+  fileName.textContent=fileInput.files.length?fileInput.files[0].name:"Belum ada file";
+});
+function showLoading(on,pct=0){loading.style.display=on?'flex':'none';progress.style.width=pct+'%';}
+function showResult(html){resultBox.style.display='block';resultBox.innerHTML=html;}
+async function bufferToBase64(buf){let bin='';const bytes=new Uint8Array(buf);for(let i=0;i<bytes.length;i++)bin+=String.fromCharCode(bytes[i]);return btoa(bin);}
+async function prepareFilesFromZip(ab){const zip=await JSZip.loadAsync(ab);const files=[];await Promise.all(Object.keys(zip.files).map(async p=>{const e=zip.files[p];if(!e.dir){const d=await e.async('uint8array');files.push({file:p.replace(/^\/+/,'').replace(/\\/g,'/'),data:d});}}));return files;}
+async function createProject(name){try{const r=await fetch('https://api.vercel.com/v9/projects',{method:'POST',headers:{Authorization:`Bearer ${VERCEL_TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify({name})});return await r.json();}catch{return {};}}
+async function deploy(name,files){const r=await fetch('https://api.vercel.com/v13/deployments',{method:'POST',headers:{Authorization:`Bearer ${VERCEL_TOKEN}`,'Content-Type':'application/json'},body:JSON.stringify({name,project:name,files,projectSettings:{framework:null}})});return r.json();}
+
+forgeBtn.addEventListener('click',async()=>{
+  if(deployCount>=deployLimit){alert("Limit deploy 2x sudah tercapai");return;}
+  const siteName=siteNameEl.value.toLowerCase().replace(/[^a-z0-9]/g,'');const file=fileInput.files[0];
+  if(!siteName||!file){alert('Isi nama dan pilih file valid');return;}
+  showLoading(true,10);
+  let files=[];try{
+    if(file.name.toLowerCase().endsWith('.zip')){
+      const ab=await file.arrayBuffer();const prepared=await prepareFilesFromZip(ab);
+      files=await Promise.all(prepared.map(async f=>({file:f.file,data:await bufferToBase64(f.data),encoding:'base64'})));
+    }else{const ab=await file.arrayBuffer();files.push({file:'index.html',data:await bufferToBase64(ab),encoding:'base64'});}
+  }catch(e){showLoading(false);showResult('Gagal membaca file');return;}
+  if(!files.some(x=>x.file.toLowerCase().endsWith('index.html'))){showLoading(false);showResult('index.html tidak ditemukan');return;}
+  showLoading(true,60);
+  const project=await createProject(siteName);if(!project||!project.id){showLoading(false);showResult('Gagal membuat proyek');return;}
+  showLoading(true,90);
+  const deployData=await deploy(siteName,files).catch(()=>null);
+  if(!deployData||!deployData.url){showLoading(false);showResult('Gagal deploy');return;}
+  deployCount++;if(deployCount>=deployLimit){forgeBtn.disabled=true;forgeBtn.textContent="Limit Habis";}
+  showLoading(false);
+  const finalUrl = `https://${siteName}.vercel.app`;
+  showResult(`<strong>Website berhasil dideploy</strong><br>
+  <a href="${finalUrl}" target="_blank" rel="noopener">${finalUrl}</a><br>
+  Deploy ke-${deployCount} dari ${deployLimit}`);
+});
+</script>
+</body>
+</html>
